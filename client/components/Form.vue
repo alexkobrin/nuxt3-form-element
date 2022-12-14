@@ -50,7 +50,7 @@
         <el-input
           v-model="form.tel"
           v-maska
-          data-maska="+48 ### ###-##-##"
+          data-maska="+48 ### ### ###"
           placeholder="Podaj numer telehonu"
         >
         </el-input>
@@ -69,6 +69,27 @@
           name="approvals"
         >
           zgoda na przetworzenie danych
+        </el-checkbox>
+      </el-form-item>
+
+  <el-form-item
+        v-for="(item , idx) in form.accepts"
+        :key="idx"
+        :prop="'accepts.' + idx + '.value'"
+        :rules="{required: true, message: 'Zgoda jest obowiązkowa', trigger: 'blur'}"
+
+        class="mb-5"
+        :error="
+          errors &&
+          (errors.accepts ? errors.accepts[idx] : '')
+        "
+      >
+        <el-checkbox
+          label="Akceptuję treść regulaminu programu"
+          v-model="form.accepts[idx].value"
+          name="approvals"
+        >
+           {{item.label}}   
         </el-checkbox>
       </el-form-item>
       <el-button
@@ -93,12 +114,11 @@ const form = reactive({
   pesel: "",
   tel: "",
   approvalsRegulation: "",
-  accepts: {
-    regulations: "",
-    accept1: "",
-    accept2: "",
-    accept3: "",
-  },
+  accepts: [
+   { label: "zgoda na coś 1" , value: "" },
+   { label: "zgoda na coś 2", value: ""},
+   {label: "zgoda na coś 3", value: "" }
+   ],
 });
 
 // variables
@@ -110,6 +130,7 @@ const errors = {
   pesel: null,
   tel: "" ,
   approvalsRegulation: null,
+  accepts: []
 };
 const loading = false;
 
@@ -126,11 +147,10 @@ const validateApproval = (rule, value, callback) => {
 };
 const validatePhone = (rule,value,callback) => {
      if (!value  ) return  callback();
-     const regex =  /\D*([2-9]\d{2})(\D*)([2-9]\d{2})(\D*)(\d{4})\D*/ ;
+     const regex = /^\d{9}$/;
      const valueSliceMask = value.slice(3 , value.length).replaceAll('-' , '').replaceAll(' ' , '') ;
-   
-      const isPhoneNumber = regex.test(valueSliceMask);
 
+      const isPhoneNumber = regex.test(valueSliceMask);
         if (!isPhoneNumber) return  callback(new Error("Proszę podać prawidlowy numer telefonu"));
 
 }
@@ -201,15 +221,24 @@ const rules = reactive({
   ],
 });
 const checkForm = (form) => {
+
   form.validate((valid) => {
     if (valid) {
-      console.log("submit!");
+      sendForm()
     } else {
+      console.log(valid , 'valid');
       console.log("error submit!");
       return false;
     }
   });
 };
+const sendForm = () => {
+  let formToSend = form 
+  formToSend.steo = 'EEEEE'
+     console.log(formToSend , 'formToSend');
+     
+}
+
 const disabledButton = (formLotterty) => {
   // TODO  disabled button
   return false
