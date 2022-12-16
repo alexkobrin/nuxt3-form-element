@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_label_accepts",
+  "info": {
+    "singularName": "form-label-accept",
+    "pluralName": "form-label-accepts",
+    "displayName": "formLabelAccept"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  }
+}

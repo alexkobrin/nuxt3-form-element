@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_accepts_accepts",
+  "info": {
+    "displayName": "accepts",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "value": {
+      "type": "boolean"
+    }
+  }
+}

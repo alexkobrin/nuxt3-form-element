@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_lotteries",
+  "info": {
+    "singularName": "form-lottery",
+    "pluralName": "form-lotteries",
+    "displayName": "formLottery",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "surname": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "pesel": {
+      "type": "string"
+    },
+    "tel": {
+      "type": "string"
+    },
+    "approvalsRegulation": {
+      "type": "boolean"
+    },
+    "accepts": {
+      "type": "component",
+      "repeatable": true,
+      "component": "accepts.accepts"
+    }
+  }
+}

@@ -72,24 +72,24 @@
         </el-checkbox>
       </el-form-item>
 
-  <el-form-item
-        v-for="(item , idx) in form.accepts"
+      <el-form-item
+        v-for="(item, idx) in form.accepts"
         :key="idx"
         :prop="'accepts.' + idx + '.value'"
-        :rules="{required: true, message: 'Zgoda jest obowiązkowa', trigger: 'blur'}"
-
+        :rules="{
+          required: true,
+          message: 'Zgoda jest obowiązkowa',
+          trigger: 'blur',
+        }"
         class="mb-5"
-        :error="
-          errors &&
-          (errors.accepts ? errors.accepts[idx] : '')
-        "
+        :error="errors && (errors.accepts ? errors.accepts[idx] : '')"
       >
         <el-checkbox
           label="Akceptuję treść regulaminu programu"
           v-model="form.accepts[idx].value"
           name="approvals"
         >
-           {{item.label}}   
+          {{ item.label }}
         </el-checkbox>
       </el-form-item>
       <el-button
@@ -106,6 +106,29 @@
 import { reactive, onMounted } from "vue";
 import { vMaska } from "maska";
 //import  { FormInstance } from 'element-plus'
+const config = useRuntimeConfig();
+const strapi = useStrapi();
+
+const fetchLabelAccept = async () => {
+  try {
+    const { data } = await strapi.find("form-label-accepts");
+    if (!data) return;
+    let arr = [];
+    for (let i = 0; i < data.length; i++) {
+      arr.push({
+        label: data[i].attributes.label,
+        value: "",
+      });
+    }
+    // Added label from API to form
+   form.accepts  = arr
+    return arr;
+ 
+  } catch (e) {
+    console.log(e, "ERRor");
+    // TODO Error handler
+  }
+};
 
 const form = reactive({
   name: "",
@@ -114,11 +137,7 @@ const form = reactive({
   pesel: "",
   tel: "",
   approvalsRegulation: "",
-  accepts: [
-   { label: "zgoda na coś 1" , value: "" },
-   { label: "zgoda na coś 2", value: ""},
-   {label: "zgoda na coś 3", value: "" }
-   ],
+  accepts:  []
 });
 
 // variables
@@ -128,13 +147,18 @@ const errors = {
   surname: null,
   email: null,
   pesel: null,
-  tel: "" ,
+  tel: "",
   approvalsRegulation: null,
-  accepts: []
+  accepts: [],
 };
 const loading = false;
 
-onMounted(() => {});
+
+
+onMounted(() => {
+  fetchLabelAccept();
+   
+});
 
 // validate rules and validator
 
@@ -145,34 +169,37 @@ const validateApproval = (rule, value, callback) => {
     callback();
   }
 };
-const validatePhone = (rule,value,callback) => {
-     if (!value  ) return  callback();
-     const regex = /^\d{9}$/;
-     const valueSliceMask = value.slice(3 , value.length).replaceAll('-' , '').replaceAll(' ' , '') ;
+const validatePhone = (rule, value, callback) => {
+  if (!value) return callback();
+  const regex = /^\d{9}$/;
+  const valueSliceMask = value
+    .slice(3, value.length)
+    .replaceAll("-", "")
+    .replaceAll(" ", "");
 
-      const isPhoneNumber = regex.test(valueSliceMask);
-        if (!isPhoneNumber) return  callback(new Error("Proszę podać prawidlowy numer telefonu"));
-
-}
+  const isPhoneNumber = regex.test(valueSliceMask);
+  if (!isPhoneNumber)
+    return callback(new Error("Proszę podać prawidlowy numer telefonu"));
+};
 
 const pesel = (rule, value, callback) => {
   if (value === "") {
     callback(new Error("Proszę podać pesel"));
   } else {
-    let weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
-    let sum = 0;
-    let controlNumber = parseInt(value.substring(10, 11));
-    //
-    for (let i = 0; i < weight.length; i++) {
-      sum += parseInt(value.substring(i, i + 1)) * weight[i];
-    }
-    sum = sum % 10;
-    let result = (10 - sum) % 10 === controlNumber;
-    if (!result) {
-      callback(new Error("Pesel nie jest prawidłowy"));
-    } else {
+    // let weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+    // let sum = 0;
+    // let controlNumber = parseInt(value.substring(10, 11));
+    // //
+    // for (let i = 0; i < weight.length; i++) {
+    //   sum += parseInt(value.substring(i, i + 1)) * weight[i];
+    // }
+    // sum = sum % 10;
+    // let result = (10 - sum) % 10 === controlNumber;
+    // if (!result) {
+    //   callback(new Error("Pesel nie jest prawidłowy"));
+    // } else {
       callback();
-    }
+    // }
   }
 };
 
@@ -205,9 +232,7 @@ const rules = reactive({
       trigger: "blur",
     },
   ],
-  tel: [
-    { validator: validatePhone, trigger: "blur" }
-  ],
+  tel: [{ validator: validatePhone, trigger: "blur" }],
   pesel: [
     { required: true, message: "Proszę podać pesel", trigger: "blur" },
     { validator: pesel, trigger: "blur" },
@@ -221,27 +246,32 @@ const rules = reactive({
   ],
 });
 const checkForm = (form) => {
-
   form.validate((valid) => {
     if (valid) {
-      sendForm()
+      sendForm();
     } else {
-      console.log(valid , 'valid');
+      console.log(valid, "valid");
       console.log("error submit!");
       return false;
     }
   });
 };
-const sendForm = () => {
-  let formToSend = form 
-  formToSend.steo = 'EEEEE'
-     console.log(formToSend , 'formToSend');
-     
-}
+const sendForm = async   () => {
+  try {
+     const create   = await strapi.create("form-lotteries" , form);
+     console.log(create , '');
+  } catch (e) {
+    console.log(e , 'err');
+    
+  }
+  let formToSend = form;
+   
+    
+};
 
 const disabledButton = (formLotterty) => {
   // TODO  disabled button
-  return false
+  return false;
 };
 </script>
 
