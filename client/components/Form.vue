@@ -57,6 +57,7 @@
       </el-form-item>
       <el-form-item
         prop="approvalsRegulation"
+        label="Regulamin"
         class="mb-5"
         :error="
           errors &&
@@ -75,11 +76,12 @@
       <el-form-item
         v-for="(item, idx) in form.accepts"
         :key="idx"
+        :label="`Accept -${idx}`"
         :prop="'accepts.' + idx + '.value'"
         :rules="{
           required: true,
-          message: 'Zgoda jest obowiązkowa',
-          trigger: 'blur',
+          validator: validateAccept,
+          trigger: 'change',
         }"
         class="mb-5"
         :error="errors && (errors.accepts ? errors.accepts[idx] : '')"
@@ -93,8 +95,8 @@
         </el-checkbox>
       </el-form-item>
       <el-button
+        :loading="loading"
         @click="checkForm(formLottery)"
-        :disabled="disabledButton(formLottery)"
         type="primary"
         >Wyślij zgłoszenie
       </el-button>
@@ -121,9 +123,8 @@ const fetchLabelAccept = async () => {
       });
     }
     // Added label from API to form
-   form.accepts  = arr
+    form.accepts = arr;
     return arr;
- 
   } catch (e) {
     console.log(e, "ERRor");
     // TODO Error handler
@@ -137,7 +138,7 @@ const form = reactive({
   pesel: "",
   tel: "",
   approvalsRegulation: "",
-  accepts:  []
+  accepts: [],
 });
 
 // variables
@@ -148,26 +149,24 @@ const errors = {
   email: null,
   pesel: null,
   tel: "",
-  approvalsRegulation: null,
+  approvalsRegulation: false,
   accepts: [],
 };
-const loading = false;
-
-
+let loading = ref(false);
 
 onMounted(() => {
   fetchLabelAccept();
-   
 });
 
 // validate rules and validator
 
-const validateApproval = (rule, value, callback) => {
-  if (value === false) {
-    callback(new Error("Zgoda obowiązkowa"));
-  } else {
-    callback();
-  }
+const validateAccept = (rule, value, callback) => {
+  if (!value) return callback(new Error("Zgoda obowiązkowa"));
+  return callback();
+};
+const validateRegulamin = (rule, value, callback) => {
+  if (!value) return callback(new Error("Zgoda obowiązkowa"));
+  return callback();
 };
 const validatePhone = (rule, value, callback) => {
   if (!value) return callback();
@@ -180,26 +179,28 @@ const validatePhone = (rule, value, callback) => {
   const isPhoneNumber = regex.test(valueSliceMask);
   if (!isPhoneNumber)
     return callback(new Error("Proszę podać prawidlowy numer telefonu"));
+
+  return callback();
 };
 
 const pesel = (rule, value, callback) => {
   if (value === "") {
     callback(new Error("Proszę podać pesel"));
   } else {
-    // let weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
-    // let sum = 0;
-    // let controlNumber = parseInt(value.substring(10, 11));
-    // //
-    // for (let i = 0; i < weight.length; i++) {
-    //   sum += parseInt(value.substring(i, i + 1)) * weight[i];
-    // }
-    // sum = sum % 10;
-    // let result = (10 - sum) % 10 === controlNumber;
-    // if (!result) {
-    //   callback(new Error("Pesel nie jest prawidłowy"));
-    // } else {
-      callback();
-    // }
+    let weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+    let sum = 0;
+    let controlNumber = parseInt(value.substring(10, 11));
+    //
+    for (let i = 0; i < weight.length; i++) {
+      sum += parseInt(value.substring(i, i + 1)) * weight[i];
+    }
+    sum = sum % 10;
+    let result = (10 - sum) % 10 === controlNumber;
+    if (!result) {
+      callback(new Error("Pesel nie jest prawidłowy"));
+    } else {
+    callback();
+    }
   }
 };
 
@@ -239,40 +240,34 @@ const rules = reactive({
   ],
   approvalsRegulation: [
     {
-      required: true,
-      message: "Zgoda jest obowiązkowa",
+      validator: validateRegulamin,
       trigger: "change",
     },
   ],
 });
+
+
+
 const checkForm = (form) => {
   form.validate((valid) => {
     if (valid) {
-      sendForm();
-    } else {
-      console.log(valid, "valid");
-      console.log("error submit!");
-      return false;
-    }
+      sendForm(form);
+    } else return false;
   });
 };
-const sendForm = async   () => {
+const sendForm = async (formInTemplate) => {
+  loading.value = true;
   try {
-     const create   = await strapi.create("form-lotteries" , form);
-     console.log(create , '');
+     await strapi.create("form-lotteries", form);
+    loading.value = false;
+    formInTemplate.resetFields()
+     
   } catch (e) {
-    console.log(e , 'err');
-    
+    console.log(e, "err");
+    loading.value = false;
   }
-  let formToSend = form;
-   
-    
 };
-
-const disabledButton = (formLotterty) => {
-  // TODO  disabled button
-  return false;
-};
+ 
 </script>
 
 <style>
